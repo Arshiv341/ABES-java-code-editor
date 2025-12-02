@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run MiniVSCode",
+      "type": "shell",
+      "command": "cd /d C:\\MiniVSCodeProject\\src && \"C:\\Program Files\\Java\\jdk-24\\bin\\javac.exe\" --module-path \"C:\\MiniVSCodeProject\\javafx-sdk-25\\lib\" --add-modules javafx.controls,javafx.fxml DSAtraing\\MiniVSCode.java && java --module-path \"C:\\MiniVSCodeProject\\javafx-sdk-25\\lib\" --add-modules javafx.controls,javafx.fxml DSAtraing.MiniVSCode",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

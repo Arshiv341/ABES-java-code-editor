@@ -25,64 +25,109 @@ public class MiniVSCode extends Application {
 
     private TreeView<String> projectTree;
     private Label statusBar;
-
+    private StringBuilder inputBuffer = new StringBuilder();
     private File projectRoot = new File(".");
     private File currentDir = new File(System.getProperty("user.dir"));
     private Process currentProcess;
 
     private HashMap<Tab, File> fileMap = new HashMap<>();
 
-    private int inputStartIndex = 0;
-    private String lastUserInput = "";
-    private volatile boolean waitingForInput = false;
+    // private int inputStartIndex = 0;
+    // private String lastUserInput = "";
+    // private volatile boolean waitingForInput = false;
 
     @Override
     public void start(Stage stage) {
 
         tabPane = new TabPane();
-        tabPane.setStyle("-fx-background-color:#1e1e1e;");
-
+        // 🌟 FUTURISTIC: Darker editor background and tab style
+        tabPane.setStyle("""
+                -fx-background-color:#0b0b0b;
+                -fx-tab-min-height:30px;
+                -fx-tab-max-height:30px;
+                -fx-padding: 0;
+                /* Note: Complex tab styling requires external CSS, but we set the base dark color */
+                """);
+        
         // ================= CONSOLE =================
         console = new TextArea();
+        console.setEditable(false);
+        // 🌟 FUTURISTIC: VS Code/Dark theme terminal-like console
         console.setStyle("""
-                -fx-control-inner-background:#0c0c0c;
-                -fx-text-fill:#00ff00;
-                -fx-font-family:Consolas;
-                -fx-font-size:13;
+                -fx-control-inner-background:#1e1e1e;
+                -fx-text-fill:#99ff99; /* Lighter Green for output contrast */
+                -fx-font-family: 'Consolas', monospace;
+                -fx-font-size:14;
+                -fx-highlight-fill: #007acc;
+                -fx-highlight-text-fill: white;
+                -fx-border-color: #3c3c3c;
+                -fx-border-width: 0 0 1px 0; /* Separator line */
                 """);
 
-   console.setOnKeyPressed(e -> {
+console.setOnKeyPressed(e -> {
 
-    if (currentProcess != null && e.getCode() == KeyCode.ENTER) {
+    if (currentProcess == null) return;
+
+
+    // BACKSPACE
+    if (e.getCode() == KeyCode.BACK_SPACE) {
+        if (inputBuffer.length() > 0) {
+            inputBuffer.deleteCharAt(inputBuffer.length() - 1);
+            Platform.runLater(() -> {
+                int len = console.getText().length();
+                console.deleteText(len - 1, len);
+            });
+        }
         e.consume();
+        return;
     }
 
-    if (currentProcess != null && waitingForInput && e.getCode() == KeyCode.ENTER) {
+    // ENTER = SEND INPUT
+    if (e.getCode() == KeyCode.ENTER) {
+        e.consume();
 
-        int len = console.getText().length();
+        String input = inputBuffer.toString();
 
-        lastUserInput = console.getText()
-                .substring(inputStartIndex, len)
-                .replace("\n", "")
-                .replace("\r", "")
-                .trim();
+        // empty input JVM ko mat bhejo
+        if (!input.isEmpty()) {
+            sendInput(input);
+        }
 
-        inputStartIndex = len;
-        waitingForInput = false;
+        inputBuffer.setLength(0);
 
-        sendInput();
-        lastUserInput = "";   // ✅ VERY IMPORTANT
+        Platform.runLater(() -> console.appendText("\n"));
+        return;
+    }
+
+    // NORMAL CHAR INPUT
+    if (!e.isControlDown() && e.getText().length() > 0) {
+        char ch = e.getText().charAt(0);
+        inputBuffer.append(ch);
+        Platform.runLater(() -> console.appendText(String.valueOf(ch)));
+        e.consume();
     }
 });
 
 
+// console.addEventFilter(KeyEvent.KEY_TYPED, e -> {
+//    // User sirf last input position ke baad hi type kar sake
+//    if (console.getCaretPosition() < inputStartIndex) {
+//        e.consume();
+//        console.positionCaret(console.getText().length());
+//    }
+// });
+
+
+
+
         // ================= TERMINAL =================
         terminal = new TextArea();
+        // 🌟 FUTURISTIC: VS Code/Dark theme terminal-like
         terminal.setStyle("""
                 -fx-control-inner-background:#000000;
                 -fx-text-fill:#00ff00;
-                -fx-font-family:Consolas;
-                -fx-font-size:13;
+                -fx-font-family: 'Consolas', monospace;
+                -fx-font-size:14;
                 """);
 
         terminal.appendText(currentDir.getAbsolutePath() + "> ");
@@ -97,15 +142,21 @@ public class MiniVSCode extends Application {
         });
 
         VBox consoleBox = new VBox(console, terminal);
+        // 🌟 FUTURISTIC: Console/Terminal box background
+        consoleBox.setStyle("-fx-background-color: #1e1e1e;");
 
         // ================= PROJECT TREE =================
         projectTree = new TreeView<>();
         projectTree.setPrefWidth(240);
         projectTree.setRoot(buildTree(projectRoot));
+        // 🌟 FUTURISTIC: VS Code Activity Bar/File Explorer style
         projectTree.setStyle("""
-                -fx-background-color:#1e1e1e;
-                -fx-control-inner-background:#1e1e1e;
-                -fx-text-fill:white;
+                -fx-background-color:#252526;
+                -fx-control-inner-background:#252526;
+                -fx-text-fill: #cccccc;
+                -fx-font-size: 13;
+                -fx-border-color: #3c3c3c;
+                -fx-border-width: 0 1px 0 0;
                 """);
 
         projectTree.setOnMouseClicked(e -> {
@@ -119,17 +170,18 @@ public class MiniVSCode extends Application {
         });
 
         // ================= ICON TOOLBAR =================
-        Button newBtn = iconBtn("＋", "New File");
+        Button newBtn = iconBtn("📄", "New File");
         Button openBtn = iconBtn("📂", "Open File");
         Button saveBtn = iconBtn("💾", "Save");
         Button runBtn  = iconBtn("▶", "Run Program");
         Button folderBtn = iconBtn("🗂", "Select Folder");
-        Button terminalBtn = iconBtn(">_", "Toggle Terminal");
+        Button terminalBtn = iconBtn("💻", "Toggle Terminal");
 
         ToolBar toolBar = new ToolBar(
                 newBtn, openBtn, saveBtn, runBtn, folderBtn, terminalBtn
         );
-        toolBar.setStyle("-fx-background-color:#2b2b2b;");
+        // 🌟 FUTURISTIC: Thicker, darker toolbar (Activity Bar)
+        toolBar.setStyle("-fx-background-color:#333333; -fx-padding: 5 10 5 10; -fx-spacing: 10;");
 
         newBtn.setOnAction(e -> createNewFileWithName());
         openBtn.setOnAction(e -> openFile(stage));
@@ -141,15 +193,26 @@ public class MiniVSCode extends Application {
             terminalVisible = !terminalVisible;
             terminal.setVisible(terminalVisible);
             terminal.setManaged(terminalVisible);
-            statusBar.setText(terminalVisible ? "Terminal Opened" : "Terminal Hidden");
+            console.setManaged(!terminalVisible); // Only show console when terminal is hidden
+            console.setVisible(!terminalVisible); //
+            statusBar.setText(terminalVisible ? "Terminal Opened" : "Console Opened");
         });
+        
+        // 🌟 Initialize console and terminal to split view
+        terminal.setManaged(false); 
+        terminal.setVisible(false);
+        console.setManaged(true);
+        console.setVisible(true);
 
         // ================= STATUS BAR =================
         statusBar = new Label("Ready");
         statusBar.setPadding(new Insets(6));
+        // 🌟 FUTURISTIC: VS Code status bar style
         statusBar.setStyle(
-                "-fx-background-color:#2b2b2b;" +
-                "-fx-text-fill:white;"
+                "-fx-background-color:#007acc;" + // Deep blue status bar
+                "-fx-text-fill:white;" +
+                "-fx-font-weight:bold;" +
+                "-fx-padding: 5 15 5 15;"
         );
 
         // ================= LAYOUT =================
@@ -157,14 +220,19 @@ public class MiniVSCode extends Application {
         SplitPane vSplit = new SplitPane(hSplit, consoleBox);
         vSplit.setOrientation(Orientation.VERTICAL);
 
+        // 🌟 FUTURISTIC: Default split position
+        hSplit.setDividerPosition(0, 0.2); // Project tree takes 20%
+        vSplit.setDividerPosition(0, 0.75); // Editor takes 75%
+
         BorderPane root = new BorderPane();
         root.setTop(toolBar);
         root.setCenter(vSplit);
         root.setBottom(statusBar);
+        // 🌟 FUTURISTIC: Main application background
         root.setStyle("-fx-background-color:#1e1e1e;");
 
-     stage.setScene(new Scene(root, 1350, 780));
-stage.setTitle("ABES JAVA EDITOR");
+        stage.setScene(new Scene(root, 1350, 780));
+        stage.setTitle("ABES JAVA EDITOR");
 
 try {
     stage.getIcons().add(
@@ -185,14 +253,17 @@ stage.show();
     private Button iconBtn(String icon, String tip) {
         Button btn = new Button(icon);
         btn.setTooltip(new Tooltip(tip));
-        btn.setStyle("""
-                -fx-background-color:#3c3f41;
-                -fx-text-fill:white;
-                -fx-font-size:16;
-                -fx-min-width:40;
-                -fx-min-height:32;
-                -fx-background-radius:6;
-        """);
+
+        // Base style
+        final String baseStyle = "-fx-background-color: transparent; -fx-text-fill: #cccccc; -fx-font-size: 18; -fx-min-width: 40; -fx-min-height: 32; -fx-padding: 0;";
+        // Hover style
+        final String hoverStyle = baseStyle + "-fx-background-color: #3c3c3c;";
+        
+        btn.setStyle(baseStyle);
+
+        // 🌟 FUTURISTIC: Add hover effect using event handlers (internal approach)
+        btn.setOnMouseEntered(e -> btn.setStyle(hoverStyle));
+        btn.setOnMouseExited(e -> btn.setStyle(baseStyle));
         return btn;
     }
 
@@ -228,96 +299,107 @@ stage.show();
         }
     }
 
-    // ================= RUN PROGRAM (AUTO STOP) =================
-    private void runProgram() {
-        try {
-            saveCurrentFile();
-            console.clear();
-            waitingForInput = false;
+ // ================= RUN PROGRAM (AUTO STOP) =================
+private void runProgram() {
+    try {
+        saveCurrentFile();
+        console.clear();
+        inputBuffer.setLength(0);
 
-            Tab tab = tabPane.getSelectionModel().getSelectedItem();
-            File file = fileMap.get(tab);
-            if (file == null) return;
 
-            String filePath = file.getAbsolutePath();
-            String fileName = file.getName().replace(".java", "");
-            String parent = file.getParent();
 
-            statusBar.setText("Running : " + fileName);
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        File file = fileMap.get(tab);
+        if (file == null) return;
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    "cmd", "/c",
-                    "chcp 65001 > nul && javac \"" + filePath + "\" && " +
-                    "java -Dfile.encoding=UTF-8 -cp \"" +
-                    parent + "\" " + fileName
-            );
+        String filePath = file.getAbsolutePath();
+        String fileName = file.getName().replace(".java", "");
+        String parent = file.getParentFile().getParent();
 
-            pb.redirectErrorStream(true);
-            currentProcess = pb.start();
 
-           new Thread(() -> {
-    try (Reader reader = new InputStreamReader(
-            currentProcess.getInputStream(),
-            StandardCharsets.UTF_8)) {
-
-        int ch;
-        while ((ch = reader.read()) != -1) {
-            char c = (char) ch;
-            final char cc = c;
-
-            Platform.runLater(() -> {
-                // 💚 Pehle output dikhao
-                console.appendText(String.valueOf(cc));
-
-                // 💚 Yahin par, UI thread me hi inputStartIndex set karo
-                if (cc == ':' && !waitingForInput) {
-                    waitingForInput = true;
-                    inputStartIndex = console.getText().length();
+        // ✅ PACKAGE AUTO DETECTION
+        String packageName = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("package ")) {
+                    packageName = line
+                            .replace("package", "")
+                            .replace(";", "")
+                            .trim();
+                    break;
                 }
-            });
+            }
         }
-    } catch (Exception ignored) {}
-}).start();
+
+        String fullClassName = packageName.isEmpty()
+                ? fileName
+                : packageName + "." + fileName;
+
+        statusBar.setText("Running : " + fullClassName);
+
+        ProcessBuilder pb = new ProcessBuilder(
+    "cmd", "/c",
+    "chcp 65001 > nul && " +
+    "javac -d \"" + parent + "\" \"" + filePath + "\" && " +
+    "java -Dfile.encoding=UTF-8 -cp \"" + parent + "\" " + fullClassName
+);
 
 
-            new Thread(() -> {
-                try {
-                    currentProcess.waitFor();
+        pb.redirectErrorStream(true);
+        currentProcess = pb.start();
+
+        new Thread(() -> {
+            try (Reader reader = new InputStreamReader(
+                    currentProcess.getInputStream(),
+                    StandardCharsets.UTF_8)) {
+
+                int ch;
+                while ((ch = reader.read()) != -1) {
+                    char c = (char) ch;
+
                     Platform.runLater(() -> {
-                        statusBar.setText("Finished");
-                        waitingForInput = false;
-                        console.appendText("\n[Process Finished]\n");
-                    });
-                } catch (Exception ignored) {}
-            }).start();
+    console.appendText(String.valueOf(c));
+});
 
-        } catch (Exception e) {
-            console.appendText("Run error\n");
-        }
+                }
+            } catch (Exception ignored) {}
+        }).start();
+
+        new Thread(() -> {
+            try {
+                currentProcess.waitFor();
+                Platform.runLater(() -> {
+                    statusBar.setText("Finished");
+                    //waitingForInput = false;
+                    console.appendText("\n[Process Finished]\n");
+                });
+            } catch (Exception ignored) {}
+        }).start();
+
+    } catch (Exception e) {
+        console.appendText("Run error\n");
     }
+}
 
-private void sendInput() {
+private void sendInput(String data) {
     try {
         if (currentProcess != null) {
-
             BufferedWriter bw = new BufferedWriter(
                     new OutputStreamWriter(
                             currentProcess.getOutputStream(),
                             StandardCharsets.UTF_8));
 
-            if (lastUserInput.trim().isEmpty()) return;
-
-bw.write(lastUserInput.trim());
-bw.newLine();
-bw.flush();
-
-waitingForInput = false;
- 
+            bw.write(data);
+            bw.newLine();
+            bw.flush();
         }
     } catch (Exception e) {
         console.appendText("\n[Input Send Error]\n");
     }
 }
+
 
 
     private void newTab() {
@@ -330,6 +412,8 @@ waitingForInput = false;
 
     private void openFile(Stage stage) {
         FileChooser fc = new FileChooser();
+        // 🌟 FUTURISTIC: Set initial directory to project root
+        fc.setInitialDirectory(projectRoot);
         File file = fc.showOpenDialog(stage);
         if (file != null) openFileInTab(file);
     }
@@ -355,6 +439,8 @@ waitingForInput = false;
         File file = fileMap.get(tab);
         if (file == null) {
             FileChooser fc = new FileChooser();
+            // 🌟 FUTURISTIC: Set initial directory to project root
+            fc.setInitialDirectory(projectRoot);
             file = fc.showSaveDialog(null);
             if (file == null) return;
             fileMap.put(tab, file);
@@ -367,7 +453,7 @@ waitingForInput = false;
 
             TextArea editor = (TextArea) tab.getContent();
             bw.write(editor.getText());
-            statusBar.setText("Auto-Saved");
+            statusBar.setText("Auto-Saved: " + file.getName());
         } catch (Exception ignored) {}
     }
 
@@ -377,17 +463,22 @@ waitingForInput = false;
         if (dir != null) {
             projectRoot = dir;
             projectTree.setRoot(buildTree(projectRoot));
+            statusBar.setText("Project Folder Set: " + dir.getName());
         }
     }
 
   private TextArea createEditor() {
     TextArea editor = new TextArea();
 
+    // 🌟 FUTURISTIC: Darker editor and better syntax-like colors
     editor.setStyle("""
             -fx-control-inner-background:#1e1e1e;
-            -fx-text-fill:#dcdcdc;
-            -fx-font-family:Consolas;
+            -fx-text-fill:#d4d4d4; /* Lighter grey for better readability */
+            -fx-font-family: 'Consolas', monospace;
             -fx-font-size:14;
+            -fx-background-color:#1e1e1e;
+            -fx-padding: 10;
+            -fx-caret-color: white; /* Visible blinking cursor */
             """);
 
     // ✅ AUTO CLOSE CURLY BRACE
@@ -415,7 +506,7 @@ waitingForInput = false;
             String indent = prevLine.replaceAll("^(\\s*).*", "$1");
 
             if (prevLine.trim().endsWith("{")) {
-                indent += "    ";   // 4 spaces
+                indent += "    ";    // 4 spaces
             }
 
             editor.insertText(caretPos, "\n" + indent);
@@ -445,6 +536,22 @@ waitingForInput = false;
     private void createNewFileWithName() {
 
     TextInputDialog dialog = new TextInputDialog("MyFile.java");
+    // 🌟 FUTURISTIC: Darker dialog theme applied inline
+    dialog.getDialogPane().setStyle("""
+        -fx-background-color: #1e1e1e; 
+        -fx-text-fill: #d4d4d4; 
+        -fx-border-color: #007acc;
+        -fx-border-width: 1px;
+    """);
+    dialog.getDialogPane().lookup(".header-panel").setStyle("-fx-background-color: #252526;");
+    dialog.getDialogPane().lookup(".content").setStyle("-fx-text-fill: #cccccc;");
+    
+    // Attempt to style the input field
+    TextField tf = (TextField) dialog.getDialogPane().lookup(".text-field");
+    if (tf != null) {
+        tf.setStyle("-fx-control-inner-background:#3c3c3c; -fx-text-fill:#d4d4d4;");
+    }
+
     dialog.setTitle("New File");
     dialog.setHeaderText("Enter file name");
     dialog.setContentText("File name:");
