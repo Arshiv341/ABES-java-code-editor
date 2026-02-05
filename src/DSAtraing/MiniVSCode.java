@@ -40,7 +40,7 @@ public class MiniVSCode extends Application {
     public void start(Stage stage) {
 
         tabPane = new TabPane();
-        // 🌟 FUTURISTIC: Darker editor background and tab style
+        // 🌟 FUTURISTIC: Darker editor background and tab style .
         tabPane.setStyle("""
                 -fx-background-color:#0b0b0b;
                 -fx-tab-min-height:30px;
