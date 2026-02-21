@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+//import java.lang.classfile.Label;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -14,7 +15,11 @@ import java.util.Optional;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import javafx.stage.Popup;
+
+import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.Context;
+import java.awt.Desktop;
+import java.net.URI;
 
 public class MiniVSCode extends Application {
 
@@ -31,6 +36,7 @@ public class MiniVSCode extends Application {
     private Process currentProcess;
 
     private HashMap<Tab, File> fileMap = new HashMap<>();
+    private Tomcat tomcat;
 
     // private int inputStartIndex = 0;
     // private String lastUserInput = "";
@@ -182,7 +188,13 @@ console.setOnKeyPressed(e -> {
         );
         // 🌟 FUTURISTIC: Thicker, darker toolbar (Activity Bar)
         toolBar.setStyle("-fx-background-color:#333333; -fx-padding: 5 10 5 10; -fx-spacing: 10;");
+        Button tomcatBtn = iconBtn("🌐", "Start Tomcat");
+Button stopTomcatBtn = iconBtn("⛔", "Stop Tomcat");
 
+toolBar.getItems().addAll(tomcatBtn, stopTomcatBtn);
+
+tomcatBtn.setOnAction(e -> startEmbeddedTomcat());
+stopTomcatBtn.setOnAction(e -> stopEmbeddedTomcat());
         newBtn.setOnAction(e -> createNewFileWithName());
         openBtn.setOnAction(e -> openFile(stage));
         saveBtn.setOnAction(e -> saveCurrentFile());
@@ -214,6 +226,7 @@ console.setOnKeyPressed(e -> {
                 "-fx-font-weight:bold;" +
                 "-fx-padding: 5 15 5 15;"
         );
+        
 
         // ================= LAYOUT =================
         SplitPane hSplit = new SplitPane(projectTree, tabPane);
@@ -248,6 +261,34 @@ stage.show();
 
 
     }
+    // ================= EMBEDDED TOMCAT =================
+private void startEmbeddedTomcat() {
+    try {
+        if (tomcat != null) {
+            statusBar.setText("Tomcat Already Running");
+            return;
+        }
+
+        tomcat = new Tomcat();
+        tomcat.setBaseDir("tomcat-temp");   // ⚠ IMPORTANT
+        tomcat.setPort(9090);
+
+        tomcat.getConnector(); 
+
+        File base = new File(".");
+        tomcat.addContext("", base.getAbsolutePath());
+
+        tomcat.start();
+
+        statusBar.setText("Tomcat Started at http://localhost:8080");
+
+        Desktop.getDesktop().browse(new URI("http://localhost:8080"));
+
+    } catch (Exception e) {
+        e.printStackTrace();   // 🔥 DO NOT REMOVE
+        statusBar.setText("Tomcat Start Failed");
+    }
+}
 
     // ================= ICON BUTTON MAKER =================
     private Button iconBtn(String icon, String tip) {
