@@ -121,3 +121,19 @@ Java Developer | Backend Enthusiast | System Builder
 ⭐ If You Like This Project
 
 Give it a ⭐ on GitHub and connect on LinkedIn!
+
+
+steps for run-->>
+Step-1:: 
+========open file=======
+<img width="1214" height="768" alt="Screenshot 2026-02-24 142628" src="https://github.com/user-attachments/assets/824e2280-206f-4e32-acac-ac10ec5b60b6" />
+
+Step-2::
+select version 1 ,2 and 3 prefer 2
+<img width="1476" height="751" alt="Screenshot 2026-02-24 142646" src="https://github.com/user-attachments/assets/be9272eb-7602-431b-91ad-b3c60cb4e142" />
+
+Step-3::
+Software on your window
+<img width="1919" height="1077" alt="Screenshot 2026-02-24 142721" src="https://github.com/user-attachments/assets/40a194de-dadf-4d42-9eda-c53af86ef670" />
+
+
