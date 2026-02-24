@@ -123,17 +123,15 @@ Java Developer | Backend Enthusiast | System Builder
 Give it a ⭐ on GitHub and connect on LinkedIn!
 
 
-steps for run-->>
-Step-1:: 
-========open file=======
-<img width="1214" height="768" alt="Screenshot 2026-02-24 142628" src="https://github.com/user-attachments/assets/824e2280-206f-4e32-acac-ac10ec5b60b6" />
+## 🚀 Steps to Run
 
-Step-2::
-select version 1 ,2 and 3 prefer 2
-<img width="1476" height="751" alt="Screenshot 2026-02-24 142646" src="https://github.com/user-attachments/assets/be9272eb-7602-431b-91ad-b3c60cb4e142" />
+### Step-1: Open File
+![Open File](https://i.ibb.co/gb4Z3dfJ/69c21a0a9edd.png)
 
-Step-3::
-Software on your window
-<img width="1919" height="1077" alt="Screenshot 2026-02-24 142721" src="https://github.com/user-attachments/assets/40a194de-dadf-4d42-9eda-c53af86ef670" />
+### Step-2: Select Version (Prefer 2)
+![Select Version](https://i.ibb.co/gL9F9zB9/88615a685fda.png)
+
+### Step-3: Software on Your Window
+![Software Window](https://i.ibb.co/mC3X4RwY/d2eb5c60ffb0.png)
 
 
