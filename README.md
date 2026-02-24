@@ -126,12 +126,12 @@ Give it a ⭐ on GitHub and connect on LinkedIn!
 ## 🚀 Steps to Run
 
 ### Step-1: Open File
-![Open File](https://i.ibb.co/gb4Z3dfJ/69c21a0a9edd.png)
-
+![Step 1](https://github.com/Arshiv341/ABES-java-code-editor/blob/main/Screenshot%202026-02-24%20144448.png?raw=true)
 ### Step-2: Select Version (Prefer 2)
-![Select Version](https://i.ibb.co/gL9F9zB9/88615a685fda.png)
+![Select Version](https://github.com/Arshiv341/ABES-java-code-editor/blob/main/Screenshot%202026-02-24%20142646.png)
 
 ### Step-3: Software on Your Window
-![Software Window](https://i.ibb.co/mC3X4RwY/d2eb5c60ffb0.png)
+![Software Window](https://github.com/Arshiv341/ABES-java-code-editor/blob/main/Screenshot%202026-02-24%20142721.png)
+
 
 
